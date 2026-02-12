@@ -1,13 +1,13 @@
 # Kiwi - WhatsApp Bot
 
-Kiwi is a simple WhatsApp bot built with **JavaScript** using [Baileys](https://github.com/adiwajshing/Baileys). It allows you to respond automatically to messages and can be extended with custom commands and features.
+Kiwi is a simple WhatsApp bot built with **JavaScript** using [Baileys 6.x](https://github.com/adiwajshing/Baileys). It connects via WhatsApp Web, responds to messages, and can be extended with custom commands.
 
 ## Features
 
 - Connects to WhatsApp Web
-- Auto-reconnect on disconnects
+- Auto-reconnect on disconnect
 - Responds to messages (example: "ping" → "Pong!")
-- Session saved locally, no need to scan QR code every time
+- Saves session locally, no need to scan QR every time
 
 ## Requirements
 
@@ -20,4 +20,4 @@ Kiwi is a simple WhatsApp bot built with **JavaScript** using [Baileys](https://
 
 ```bash
 git clone https://github.com/yourusername/kiwi.git
-cd kiwi# Kiwi
+cd kiwi
