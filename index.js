@@ -1,44 +1,47 @@
-const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@adiwajshing/baileys');
-const { state, saveState } = useSingleFileAuthState('./sessions/auth_info.json');
-const qrcode = require('qrcode-terminal');
+import makeWASocket, { useSingleFileAuthState, DisconnectReason } from "baileys";
+import { Boom } from "@hapi/boom";
+import qrcode from "qrcode-terminal";
 
-async function startBot() {
-    const sock = makeWASocket({
-        auth: state,
-        printQRInTerminal: true
-    });
+const { state, saveState } = useSingleFileAuthState("./sessions/auth_info.json");
 
-    sock.ev.on('creds.update', saveState);
+const sock = makeWASocket({
+    auth: state,
+    printQRInTerminal: true
+});
 
-    sock.ev.on('connection.update', (update) => {
-        const { connection, lastDisconnect, qr } = update;
+sock.ev.on("creds.update", saveState);
 
-        if (qr) {
-            qrcode.generate(qr, { small: true });
+sock.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+        qrcode.generate(qr, { small: true });
+    }
+
+    if (connection === "close") {
+        const reason = (lastDisconnect.error as Boom)?.output?.statusCode;
+        console.log("Connection closed. Reason:", reason);
+        if (reason !== DisconnectReason.loggedOut) {
+            startBot(); // reconectar
         }
+    } else if (connection === "open") {
+        console.log("✅ Bot conectado!");
+    }
+});
 
-        if (connection === 'close') {
-            const reason = (lastDisconnect.error)?.output?.statusCode;
-            console.log('Connection closed. Reason:', reason);
-            if (reason !== DisconnectReason.loggedOut) {
-                startBot(); // reconectar se não foi logout
-            }
-        } else if (connection === 'open') {
-            console.log('✅ Bot conectado!');
-        }
-    });
+// Mensagens recebidas
+sock.ev.on("messages.upsert", async (msg) => {
+    const message = msg.messages[0];
+    if (!message.message || message.key.fromMe) return;
 
-    sock.ev.on('messages.upsert', async (msg) => {
-        const message = msg.messages[0];
-        if (!message.message || message.key.fromMe) return;
+    const from = message.key.remoteJid;
+    const text = message.message.conversation || message.message.extendedTextMessage?.text;
 
-        const from = message.key.remoteJid;
-        const text = message.message.conversation || message.message.extendedTextMessage?.text;
+    if (text?.toLowerCase() === "ping") {
+        await sock.sendMessage(from, { text: "Pong!" });
+    }
+});
 
-        if (text?.toLowerCase() === 'ping') {
-            await sock.sendMessage(from, { text: 'Pong!' });
-        }
-    });
+function startBot() {
+    console.log("Iniciando bot...");
 }
-
-startBot();
