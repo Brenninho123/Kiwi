@@ -1,11 +1,12 @@
 {
   "name": "kiwi",
   "version": "1.0.0",
-  "description": "WhatsApp bot in JavaScript",
-  "main": "index.js",
+  "description": "WhatsApp bot in JavaScript using Baileys 6.x",
+  "type": "module",
+  "main": "index.mjs",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node index.mjs",
+    "dev": "nodemon index.mjs"
   },
   "keywords": [
     "whatsapp",
@@ -17,7 +18,8 @@
   "license": "MIT",
   "dependencies": {
     "baileys": "^6.7.0",
-    "qrcode-terminal": "^0.12.0"
+    "qrcode-terminal": "^0.12.0",
+    "@hapi/boom": "^10.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
