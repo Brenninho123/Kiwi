@@ -16,28 +16,23 @@ jobs:
         node-version: [20, 22]
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
-      # 3️⃣ Cache NPM (apenas se package-lock.json existir)
-      - name: Cache npm if lock file exists
-        if: exists('package-lock.json') || exists('npm-shrinkwrap.json') || exists('yarn.lock')
+      - name: Cache npm modules
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json', '**/npm-shrinkwrap.json', '**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node-version }}-
 
-      # 4️⃣ Instalar dependências
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -46,29 +41,17 @@ jobs:
             npm install
           fi
 
-      # 5️⃣ Lint (opcional)
-      - name: Lint code
+      - name: Lint code (optional)
         run: |
-          if npm run lint --if-present; then
-            echo "Lint passed"
-          else
-            echo "No lint script or lint failed"
-          fi
+          npm run lint --if-present || echo "No lint or lint failed"
 
-      # 6️⃣ Rodar testes (opcional)
-      - name: Run tests
+      - name: Run tests (optional)
         run: |
-          if npm test --if-present; then
-            echo "Tests passed"
-          else
-            echo "No tests or tests failed"
-          fi
+          npm test --if-present || echo "No tests or tests failed"
 
-      # 7️⃣ Rodar o bot
       - name: Run Kiwi Bot
         run: npm start
 
-      # 8️⃣ Upload logs se falhar
       - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
