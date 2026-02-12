@@ -16,16 +16,20 @@ jobs:
         node-version: [20, 22]
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
-      - name: Cache npm
+      # 3️⃣ Cache NPM (apenas se package-lock.json existir)
+      - name: Cache npm if lock file exists
+        if: exists('package-lock.json') || exists('npm-shrinkwrap.json') || exists('yarn.lock')
         uses: actions/cache@v3
         with:
           path: ~/.npm
@@ -33,10 +37,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node-version }}-
 
+      # 4️⃣ Instalar dependências
       - name: Install dependencies
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
-      - name: Lint Code (optional)
+      # 5️⃣ Lint (opcional)
+      - name: Lint code
         run: |
           if npm run lint --if-present; then
             echo "Lint passed"
@@ -44,7 +55,8 @@ jobs:
             echo "No lint script or lint failed"
           fi
 
-      - name: Run Tests (optional)
+      # 6️⃣ Rodar testes (opcional)
+      - name: Run tests
         run: |
           if npm test --if-present; then
             echo "Tests passed"
@@ -52,13 +64,14 @@ jobs:
             echo "No tests or tests failed"
           fi
 
+      # 7️⃣ Rodar o bot
       - name: Run Kiwi Bot
         run: npm start
 
-      - name: Upload logs if failure
+      # 8️⃣ Upload logs se falhar
+      - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: kiwi-logs
-          path: |
-            ./logs/
+          path: ./logs/
