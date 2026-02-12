@@ -1,10 +1,10 @@
-name: Android CI - Kiwi Bot
+name: Advanced Android CI - Kiwi Bot
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
@@ -13,22 +13,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22]  # Testa em múltiplas versões do Node.js
+        node-version: [20, 22]
 
     steps:
-      # 1️⃣ Checkout do código
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
 
-      # 3️⃣ Cache de dependências (ainda mais rápido)
-      - name: Cache NPM modules
+      - name: Cache npm
         uses: actions/cache@v3
         with:
           path: ~/.npm
@@ -36,32 +33,31 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-${{ matrix.node-version }}-
 
-      # 4️⃣ Instalar dependências
       - name: Install dependencies
         run: npm ci
 
-      # 5️⃣ Lint (opcional, só se quiser validar o código)
-      - name: Lint code
+      - name: Lint Code (optional)
         run: |
-          if [ -f package.json ]; then
-            npm run lint || echo "No lint script defined"
+          if npm run lint --if-present; then
+            echo "Lint passed"
+          else
+            echo "No lint script or lint failed"
           fi
 
-      # 6️⃣ Rodar testes (opcional)
-      - name: Run tests
+      - name: Run Tests (optional)
         run: |
-          if [ -f package.json ]; then
-            npm test || echo "No tests defined"
+          if npm test --if-present; then
+            echo "Tests passed"
+          else
+            echo "No tests or tests failed"
           fi
 
-      # 7️⃣ Rodar o bot
       - name: Run Kiwi Bot
         run: npm start
 
-      # 8️⃣ Upload logs (para debugar facilmente)
-      - name: Upload bot logs
+      - name: Upload logs if failure
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: kiwi-logs
           path: |
